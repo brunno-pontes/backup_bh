@@ -1,0 +1,51 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exchange-alt me-2"></i>
+                        Delegar Gestão de {{ gestor_principal.username }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Atenção:</strong> Esta ação irá transferir a gestão de todos os subordinados do gestor 
+                        <strong>{{ gestor_principal.username }}</strong> para o gestor substituto selecionado.
+                    </div>
+                    
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="gestor_substituto_id" class="form-label">Selecione o gestor substituto:</label>
+                            <select name="gestor_substituto_id" id="gestor_substituto_id" class="form-select">
+                                <option value="">Selecione um gestor substituto</option>
+                                {% for gestor in gestores %}
+                                    <option value="{{ gestor.id }}">
+                                        {{ gestor.username }} ({{ gestor.role }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                Selecione o gestor que assumirá temporariamente a gestão dos subordinados.
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin.listar_usuarios') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i> Voltar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-exchange-alt me-2"></i> Delegar Gestão
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,232 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="text-vivo mb-0">
+        <i class="fas fa-users me-2"></i>Gerenciar Usuários
+    </h3>
+    <div>
+        <button type="button" class="btn btn-vivo" data-bs-toggle="modal" data-bs-target="#editarMassaModal">
+            <i class="fas fa-edit me-1"></i>Editar em Massa
+        </button>
+        <a href="{{ url_for('admin.adicionar_usuario') }}" class="btn btn-vivo ms-2">
+            <i class="fas fa-user-plus me-1"></i>Adicionar Usuário
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Nome</th>
+                        <th>Perfil Atual</th>
+                        <th>Gestor</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr>
+                        <td>{{ usuario.email }}</td>
+                        <td>{{ usuario.username }}</td>
+                        <td>
+                            {% if usuario.role == 'admin' %}
+                                <span class="badge bg-danger">Administrador</span>
+                            {% elif usuario.role == 'gestor' %}
+                                <span class="badge bg-success">Gestor</span>
+                            {% elif usuario.role == 'focal' %}
+                                <span class="badge bg-warning">Focal</span>
+                            {% elif usuario.role == 'gerente senior' %}
+                                <span class="badge bg-info">Gerente Senior</span>
+                            {% elif usuario.role == 'diretor' %}
+                                <span class="badge bg-dark">Diretor</span>
+                            {% elif usuario.role == 'gerente' %}    
+                                <span class="badge bg-info">Gerente</span>
+                            {% elif usuario.role == 'gerente' %} 
+                                <span class="badge bg-primary">Usuário</span>
+                            {% else %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if usuario.gestor %}
+                                {{ usuario.gestor.username }}
+                            {% else %}
+                                <span class="text-muted">Nenhum</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- Botão Editar Perfil -->
+                            <button type="button" class="btn btn-sm btn-outline-primary me-1" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#editarPerfilModal{{ usuario.id }}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            
+                            <!-- Botão Mudar Gestor -->
+                            <a href="{{ url_for('admin.mudar_gestor', user_id=usuario.id) }}" 
+                               class="btn btn-sm btn-outline-info me-1" title="Mudar Gestor">
+                                <i class="fas fa-user-friends"></i>
+                            </a>
+                            
+                            <!-- Botão Delegar Gestão (apenas para gestores) -->
+                            {% if usuario.role == 'gestor' %}
+                            <a href="{{ url_for('admin.delegar_gestao', gestor_id=usuario.id) }}" 
+                               class="btn btn-sm btn-outline-warning me-1" title="Delegar Gestão">
+                                <i class="fas fa-exchange-alt"></i>
+                            </a>
+                            {% endif %}
+                            
+                            <!-- Botão Remover -->
+                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#removerUsuarioModal{{ usuario.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            
+                            <!-- Modal Editar Perfil -->
+                            <div class="modal fade" id="editarPerfilModal{{ usuario.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Editar Perfil - {{ usuario.username }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form method="POST" action="{{ url_for('admin.editar_perfil', user_id=usuario.id) }}">
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Novo Perfil</label>
+                                                    <select name="novo_perfil" class="form-select" required>
+                                                        <option value="user" {% if usuario.role == 'user' %}selected{% endif %}>Usuário</option>
+                                                        <option value="focal" {% if usuario.role == 'focal' %}selected{% endif %}>Focal</option>
+                                                        <option value="gerente" {% if usuario.role == 'gerente' %}selected{% endif %}>Gerente</option>
+                                                        <option value="gestor" {% if usuario.role == 'gestor' %}selected{% endif %}>Gestor</option>
+                                                        <option value="gerente senior" {% if usuario.role == 'gerente senior' %}selected{% endif %}>Gerente Senior</option>
+                                                        <option value="diretor" {% if usuario.role == 'diretor' %}selected{% endif %}>Diretor</option>
+                                                        <option value="admin" {% if usuario.role == 'admin' %}selected{% endif %}>Administrador</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Gestor (opcional)</label>
+                                                    <select name="gestor_id" class="form-select">
+                                                        <option value="">Nenhum</option>
+                                                        {% for gestor in gestores %}
+                                                        <option value="{{ gestor.id }}" {% if usuario.gestor_id == gestor.id %}selected{% endif %}>
+                                                            {{ gestor.username }}
+                                                        </option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-vivo">Salvar Alterações</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Modal Remover Usuário -->
+                            <div class="modal fade" id="removerUsuarioModal{{ usuario.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Remover Usuário</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Tem certeza que deseja remover o usuário <strong>{{ usuario.username }}</strong>?</p>
+                                            <p class="text-danger">Esta ação não pode ser desfeita.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <form method="POST" action="{{ url_for('admin.remover_usuario', user_id=usuario.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-danger">Remover</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar em Massa -->
+<div class="modal fade" id="editarMassaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Usuários em Massa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.editar_usuarios_massa') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Selecione os Usuários</label>
+                        <div class="row">
+                            {% for usuario in usuarios %}
+                            <div class="col-md-6 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="usuarios_selecionados" value="{{ usuario.id }}" id="usuario_{{ usuario.id }}">
+                                    <label class="form-check-label" for="usuario_{{ usuario.id }}">
+                                        {{ usuario.username }} ({{ usuario.email }})
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Novo Perfil</label>
+                        <select name="novo_perfil" class="form-select" required>
+                            <option value="">Selecione um perfil...</option>
+                            <option value="user">Usuário</option>
+                            <option value="focal">Focal</option>
+                            <option value="gerente">Gerente</option>
+                            <option value="gestor">Gestor</option>
+                            <option value="gerente senior">Gerente Senior</option>
+                            <option value="diretor">Diretor</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Novo Gestor (opcional)</label>
+                        <select name="novo_gestor_id" class="form-select">
+                            <option value="">Nenhum</option>
+                            {% for gestor in gestores %}
+                            <option value="{{ gestor.id }}">{{ gestor.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-vivo">Aplicar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-vivo {
+        background-color: #660099;
+        color: #fff;
+    }
+    .btn-vivo:hover {
+        background-color: #4d0073;
+        color: #fff;
+    }
+</style>
+{% endblock %}

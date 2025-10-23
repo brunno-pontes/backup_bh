@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-lg">
+            <div class="card-body">
+                <h3 class="text-center mb-4" style="color:#660099;">
+                    <i class="fas fa-plus-circle me-2"></i>Nova Anotação
+                </h3>
+                
+                <form method="POST">
+                    <!-- Dropdown para selecionar usuário (apenas para focal) -->
+                    {% if current_user.role == 'focal' %}
+                    <div class="mb-3">
+                        <label class="form-label">Usuário *</label>
+                        <select name="user_id" class="form-select">
+                            <option value="">{{ current_user.username }}</option>
+                            {% for user in usuarios_comuns %}
+                                {% if user.id != current_user.id %}
+                                <option value="{{ user.id }}">{{ user.username }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Selecione o usuário para quem deseja fazer a solicitação (deixe em branco para você mesmo).</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Anotação</label>
+                        <select name="tipo" class="form-select" required id="tipoSolicitacao">
+                            <option value="">Selecione o tipo...</option>
+                            <option value="BH">Banco de Horas</option>
+                            <option value="Ferias">Férias</option>
+                            <option value="Dayoff">Dayoff</option>
+                            {%if current_user.role == "focal" %} 
+                            <!-- <option value="Maternidade">Licença Maternidade</option>  
+                            <option value="Paternidade">Licença Paternidade</option> -->
+                            {% endif %}
+                            {% if current_user.sexo == 'F' %}
+                            <option value="Maternidade">Licença Maternidade</option>
+                            {% elif current_user.sexo == 'M' %}
+                            <option value="Paternidade">Licença Paternidade</option>
+                            {% endif %}
+                            
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Data de Início</label>
+                        <input type="date" name="inicio" class="form-control" required id="dataInicio">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Data de Fim</label>
+                        <input type="date" name="fim" class="form-control" required id="dataFim">
+                    </div>
+                    <button type="submit" class="btn btn-vivo w-100">
+                        <i class="fas fa-paper-plane me-2"></i>Enviar Anotação
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Script para melhorar a experiência do usuário
+    document.getElementById('tipoSolicitacao').addEventListener('change', function() {
+        const tipo = this.value;
+        const dataInicio = document.getElementById('dataInicio');
+        const dataFim = document.getElementById('dataFim');
+        
+        // Definir datas padrão baseadas no tipo
+        const hoje = new Date();
+        const amanha = new Date();
+        amanha.setDate(hoje.getDate() + 1);
+        
+        // Definir data mínima para hoje para férias
+        if (tipo === 'Ferias') {
+            const hojeStr = hoje.toISOString().split('T')[0];
+            dataInicio.min = hojeStr;
+            dataFim.min = hojeStr;
+        } else {
+            dataInicio.min = "";
+            dataFim.min = "";
+        }
+        
+        if (tipo === 'Dayoff') {
+            // Para dayoff, sugerir hoje como data
+            dataInicio.value = hoje.toISOString().split('T')[0];
+            dataFim.value = hoje.toISOString().split('T')[0];
+        } else if (tipo === 'Paternidade') {
+            // Para paternidade, sugerir datas a partir de amanhã
+            dataInicio.value = amanha.toISOString().split('T')[0];
+            dataFim.value = amanha.toISOString().split('T')[0];
+        } else if (tipo === 'Maternidade') {
+            // Para maternidade, sugerir datas a partir de amanhã
+            dataInicio.value = amanha.toISOString().split('T')[0];
+            dataFim.value = amanha.toISOString().split('T')[0];
+        } else if (tipo === 'Ferias') {
+            // Para férias, sugerir datas a partir de amanhã
+            dataInicio.value = amanha.toISOString().split('T')[0];
+            dataFim.value = amanha.toISOString().split('T')[0];
+        } else {
+            // Para outros tipos, sugerir datas próximas
+            dataInicio.value = hoje.toISOString().split('T')[0];
+            dataFim.value = amanha.toISOString().split('T')[0];
+        }
+    });
+    
+    // Script para preencher automaticamente a data final
+    document.getElementById('dataInicio').addEventListener('change', function() {
+        const tipo = document.getElementById('tipoSolicitacao').value;
+        const dataInicio = this.value;
+        const dataFim = document.getElementById('dataFim');
+        
+        if (dataInicio && tipo) {
+            const inicio = new Date(dataInicio);
+            
+            if (tipo === 'Ferias') {
+                // Férias: 30 dias a partir da data inicial
+                const fim = new Date(inicio);
+                fim.setDate(inicio.getDate() + 29); // +29 porque inclui o dia inicial
+                dataFim.value = fim.toISOString().split('T')[0];
+            } else if (tipo === 'Maternidade') {
+                // Licença maternidade: 180 dias a partir da data inicial
+                const fim = new Date(inicio);
+                fim.setDate(inicio.getDate() + 179); // +179 porque inclui o dia inicial
+                dataFim.value = fim.toISOString().split('T')[0];
+            } else if (tipo === 'Paternidade') {
+                // Licença paternidade: 30 dias a partir da data inicial
+                const fim = new Date(inicio);
+                fim.setDate(inicio.getDate() + 29); // +29 porque inclui o dia inicial
+                dataFim.value = fim.toISOString().split('T')[0];
+            } else if (tipo === 'Dayoff') {
+                // Dayoff: mesma data inicial e final
+                dataFim.value = dataInicio;
+            }else if (tipo === 'BH') {
+                // BH: mesma data inicial e final
+                dataFim.value = dataInicio;
+            }
+        }
+    });
+    
+    // Adicionar validação para datas de férias
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const tipo = document.getElementById('tipoSolicitacao').value;
+        const dataInicio = document.getElementById('dataInicio').value;
+        
+        if (tipo === 'Ferias' && dataInicio) {
+            const inicio = new Date(dataInicio);
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            
+            if (inicio < hoje) {
+                e.preventDefault();
+                alert('A data de início das férias não pode ser anterior à data atual.');
+                return false;
+            }
+        }
+    });
+</script>
+
+<style>
+    .btn-vivo {
+        background-color: #660099;
+        color: #fff;
+    }
+    .btn-vivo:hover {
+        background-color: #A347BA;
+        color: #fff;
+    }
+</style>
+{% endblock %}

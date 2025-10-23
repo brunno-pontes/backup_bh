@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-lg">
+            <div class="card-header bg-vivo text-white">
+                <h4 class="mb-0"><i class="fas fa-file-excel me-2"></i>Upload de Planilha Excel</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Atenção:</strong> Ao fazer upload de uma nova planilha, todos os dados existentes serão substituídos.
+                </div>
+                
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="file" class="form-label">Selecione o arquivo Excel</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls" required>
+                        <div class="form-text">
+                            Formatos suportados: .xlsx, .xls
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-vivo">
+                            <i class="fas fa-upload me-2"></i>Fazer Upload
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

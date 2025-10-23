@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 style="color:#660099;">
+        <i class="fas fa-list me-2"></i>Minhas Solicitações
+    </h3>
+    <a href="{{ url_for('solicitacao.solicitacao') }}" class="btn btn-vivo">
+        <i class="fas fa-plus me-1"></i>Nova Solicitação
+    </a>
+</div>
+
+<!-- Informações de férias -->
+{% if total_dias_ferias > 0 %}
+<div class="alert alert-info">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fas fa-umbrella-beach me-2"></i>
+            <strong>Férias deste ano:</strong> {{ total_dias_ferias }} de 30 dias utilizados
+        </div>
+        <div class="progress" style="width: 200px;">
+            <div class="progress-bar bg-warning" 
+                 role="progressbar" 
+                 style="width: {{ (total_dias_ferias / 30 * 100)|int }}%" 
+                 aria-valuenow="{{ total_dias_ferias }}" 
+                 aria-valuemin="0" 
+                 aria-valuemax="30">
+                {{ total_dias_ferias }}/30
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Tipo</th>
+            <th>Período</th>
+            <th>Dias</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in requests %}
+        <tr>
+            <td>
+                {% if r.type == 'Ferias' %}
+                    <span class="badge bg-warning">Férias</span>
+                {% elif r.type == 'BH' %}
+                    <span class="badge bg-info">Banco de Horas</span>
+                {% elif r.type == 'Dayoff' %}
+                    <span class="badge bg-success">Dayoff</span>
+                {% elif r.type == 'Maternidade' %}
+                    <span class="badge bg-pink">Maternidade</span>
+                {% elif r.type == 'Paternidade' %}
+                    <span class="badge bg-blue">Paternidade</span>
+                {% endif %}
+            </td>
+            <td>{{ r.start_date.strftime("%d/%m/%Y") }} - {{ r.end_date.strftime("%d/%m/%Y") }}</td>
+            <td>{{ (r.end_date - r.start_date).days + 1 }} dias</td>
+            <td>
+                {% if r.status == 'Pendente' %}
+                    <span class="badge bg-warning">Pendente</span>
+                {% elif r.status == 'Aprovado' %}
+                    <span class="badge bg-success">Aprovado</span>
+                {% elif r.status == 'Rejeitado' %}
+                    <span class="badge bg-danger">Rejeitado</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="4" class="text-center">Nenhuma solicitação encontrada.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<style>
+    .btn-vivo {
+        background-color: #660099;
+        color: #fff;
+    }
+    .btn-vivo:hover {
+        background-color: #A347BA;
+        color: #fff;
+    }
+    .bg-pink { background-color: #e83e8c !important; }
+    .bg-blue { background-color: #0d6efd !important; }
+</style>
+{% endblock %}

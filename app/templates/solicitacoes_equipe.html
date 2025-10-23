@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="text-vivo mb-0">
+        <i class="fas fa-users me-2"></i>Solicitações da Equipe
+    </h3>
+    {% if current_user.role == 'gestor' %}
+{# Sugestão: use current_user.is_gestor para simplificar a condição #}
+
+    <span class="badge bg-primary">{{ solicitacoes|length }} solicitações</span>
+    {% else %}
+    <span class="badge bg-info">{{ solicitacoes|length }} colegas com solicitações aprovadas</span>
+    {% endif %}
+</div>
+
+<!-- Informações da equipe -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">
+            <i class="fas fa-user-friends me-2"></i>
+            {% if current_user.role == 'gestor' %}
+{# Sugestão: use current_user.is_gestor para simplificar a condição #}
+
+                Minha Equipe
+            {% else %}
+                Meus Colegas
+            {% endif %}
+        </h5>
+        <div class="d-flex flex-wrap gap-2">
+            {% if current_user.role == 'gestor' %}
+{# Sugestão: use current_user.is_gestor para simplificar a condição #}
+
+                {% for sub in current_user.subordinados %}
+                <span class="badge bg-secondary">
+                    <i class="fas fa-user me-1"></i>{{ sub.username }}
+                </span>
+                {% endfor %}
+            {% else %}
+                {% if current_user.gestor %}
+                    {% for colega in current_user.gestor.subordinados %}
+                        {% if colega.id != current_user.id %}
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-user me-1"></i>{{ colega.username }}
+                        </span>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Filtros (apenas para gestores) -->
+{% if current_user.role == 'gestor' %}
+{# Sugestão: use current_user.is_gestor para simplificar a condição #}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">
+            <i class="fas fa-filter me-2"></i>Filtros
+        </h5>
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">Todos os status</option>
+                    {% for status in status_disponiveis %}
+                    <option value="{{ status }}" {% if status_filtro == status %}selected{% endif %}>{{ status }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Tipo</label>
+                <select name="tipo" class="form-select">
+                    <option value="">Todos os tipos</option>
+                    {% for tipo in tipos_disponiveis %}
+                    <option value="{{ tipo }}" {% if tipo_filtro == tipo %}selected{% endif %}>{{ tipo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <div class="btn-group w-100">
+                    <button type="submit" class="btn btn-vivo">
+                        <i class="fas fa-filter me-1"></i>Filtrar
+                    </button>
+                    <a href="{{ url_for('requests.solicitacoes_equipe') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+
+
+<!-- Tabela de solicitações -->
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title mb-3">
+            <i class="fas fa-calendar-alt me-2"></i>
+            {% if current_user.role == 'user' %}
+                Solicitações da Minha Equipe
+            {% else %}
+                Solicitações Aprovadas dos Meus Colegas
+            {% endif %}
+        </h5>
+        
+        {% if solicitacoes %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-vivo text-white">
+                    <tr>
+                        <th>Usuário</th>
+                        <th>Tipo</th>
+                        <th>Período</th>
+                        <th>Dias</th>
+                        <th>Status</th>
+                        <th>Data Solicitação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in solicitacoes|sort(attribute='start_date') %}
+                    <tr>
+                        <td>
+                            <i class="fas fa-user me-1"></i>{{ s.user.username }}
+                        </td>
+                        <td>
+                            {% if s.type == 'Ferias' %}
+                                <span class="badge bg-warning">Férias</span>
+                            {% elif s.type == 'BH' %}
+                                <span class="badge bg-info">Banco de Horas</span>
+                            {% elif s.type == 'Dayoff' %}
+                                <span class="badge bg-success">Dayoff</span>
+                            {% elif s.type == 'Maternidade' %}
+                                <span class="badge bg-pink">Maternidade</span>
+                            {% elif s.type == 'Paternidade' %}
+                                <span class="badge bg-blue">Paternidade</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ s.start_date.strftime("%d/%m/%Y") }} - {{ s.end_date.strftime("%d/%m/%Y") }}
+                        </td>
+                        <td>{{ (s.end_date - s.start_date).days + 1 }} dias</td>
+                        <td>
+                            {% if s.status == 'Pendente' %}
+                                <span class="badge bg-warning">Pendente</span>
+                            {% elif s.status == 'Aprovado' %}
+                                <span class="badge bg-success">Aprovado</span>
+                            {% elif s.status == 'Rejeitado' %}
+                                <span class="badge bg-danger">Rejeitado</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ s.start_date.strftime("%d/%m/%Y") }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Nenhuma solicitação encontrada</h5>
+            <p class="text-muted">
+                {% if current_user.role == 'gestor' %}
+{# Sugestão: use current_user.is_gestor para simplificar a condição #}
+
+                    Nenhum membro da sua equipe possui solicitações registradas.
+                {% else %}
+                    Nenhum colega possui solicitações aprovadas no momento.
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .text-vivo { color: #660099; }
+    .btn-vivo { background-color: #660099; color: #fff; }
+    .btn-vivo:hover { background-color: #4d0073; color: #fff; }
+    .table-vivo { background-color: #660099; }
+    .bg-pink { background-color: #e83e8c !important; }
+    .bg-blue { background-color: #0d6efd !important; }
+</style>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="text-vivo mb-0">
+        <i class="fas fa-user-edit me-2"></i>Editar Subordinado
+    </h3>
+    <a href="{{ url_for('gestor.lista_subordinados') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Voltar
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-user-circle me-2"></i>Editar Dados de {{ subordinado.username }}
+                </h5>
+                
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email *</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input type="email" 
+                                   class="form-control" 
+                                   id="email" 
+                                   name="email" 
+                                   value="{{ subordinado.email }}" 
+                                   required 
+                                   placeholder="Digite o email">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Nome de Usuário *</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="username" 
+                                   name="username" 
+                                   value="{{ subordinado.username }}" 
+                                   required 
+                                   placeholder="Digite o nome de usuário">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Perfil *</label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="user" {% if subordinado.role == 'user' %}selected{% endif %}>Usuário Comum</option>
+                            <option value="focal" {% if subordinado.role == 'focal' %}selected{% endif %}>Usuário Focal</option>
+                            <option value="gerente" {% if subordinado.role == 'gerente' %}selected{% endif %}>Gerente</option>
+                    <option value="gestor" {% if subordinado.role == 'gestor' %}selected{% endif %}>Gestor</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="sexo" class="form-label">Sexo *</label>
+                        <select class="form-select" id="sexo" name="sexo" required>
+                            <option value="">Selecione o sexo</option>
+                            <option value="M" {% if subordinado.sexo == 'M' %}selected{% endif %}>Masculino</option>
+                            <option value="F" {% if subordinado.sexo == 'F' %}selected{% endif %}>Feminino</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Nova Senha (deixe em branco para manter a atual)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="password" 
+                                   name="password" 
+                                   placeholder="Digite a nova senha (opcional)">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="aniversario" class="form-label">Data de Aniversário</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-birthday-cake"></i></span>
+                            <input type="date" 
+                                   class="form-control" 
+                                   id="aniversario" 
+                                   name="aniversario"
+                                   value="{{ subordinado.aniversario.strftime('%Y-%m-%d') if subordinado.aniversario else '' }}"
+                                   placeholder="Selecione a data de aniversário">
+                        </div>
+                        <div class="form-text">Necessário para solicitação de Dayoff</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('gestor.lista_subordinados') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-vivo">
+                            <i class="fas fa-save me-1"></i>Atualizar Subordinado
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-vivo { color: #660099; }
+    .btn-vivo { background-color: #660099; color: #fff; }
+    .btn-vivo:hover { background-color: #4d0073; color: #fff; }
+</style>
+{% endblock %}

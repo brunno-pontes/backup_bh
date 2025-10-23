@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <div class="rounded-circle bg-vivo text-white d-flex align-items-center justify-content-center mx-auto mb-3" 
+                         style="width: 80px; height: 80px;">
+                        <i class="fas fa-user-lock fa-2x"></i>
+                    </div>
+                    <h3 class="text-vivo">Acesso ao Sistema</h3>
+                    <p class="text-muted">Entre com suas credenciais</p>
+                </div>
+                
+                <form method="POST">
+                    <!-- Seleção do método de autenticação -->
+                    <!-- <div class="mb-3">
+                        <label class="form-label">Método de Autenticação</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="auth_method" id="authLocal" value="local" checked>
+                            <label class="form-check-label" for="authLocal">
+                                <i class="fas fa-database me-1"></i>Autenticação Local
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="auth_method" id="authAD" value="ad">
+                            <label class="form-check-label" for="authAD">
+                                <i class="fas fa-building me-1"></i>Active Directory
+                            </label>
+                        </div>
+                    </div> -->
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input type="email" name="username" class="form-control" placeholder="Digite seu email" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Senha</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" name="password" class="form-control" placeholder="Digite sua senha" required>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-vivo">
+                            <i class="fas fa-sign-in-alt me-2"></i>Entrar
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-4">
+                    <small class="text-muted">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Sistema de Planejamento de Férias e Licenças
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Script para mostrar/ocultar campos conforme o método de autenticação
+    document.addEventListener('DOMContentLoaded', function() {
+        const authLocal = document.getElementById('authLocal');
+        const authAD = document.getElementById('authAD');
+        
+        function updateForm() {
+            // Aqui você pode adicionar lógica específica para cada método
+        }
+        
+        authLocal.addEventListener('change', updateForm);
+        authAD.addEventListener('change', updateForm);
+    });
+</script>
+{% endblock %}
