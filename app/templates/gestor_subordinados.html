@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="text-vivo mb-0">
+        <i class="fas fa-user-friends me-2"></i>Gerenciamento de Subordinados
+    </h3>
+    <a href="{{ url_for('gestor.adicionar_subordinado') }}" class="btn btn-vivo">
+        <i class="fas fa-plus me-1"></i>Adicionar Subordinado
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">
+            <i class="fas fa-list me-2"></i>Lista de Subordinados ({{ subordinados|length }})
+        </h5>
+        
+        {% if subordinados %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Usuário</th>
+                        <th>Email</th>
+                        <th>Perfil</th>
+                        <th>Data de Aniversário</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sub in subordinados %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-light me-3 d-flex align-items-center justify-content-center" 
+                                     style="width: 35px; height: 35px;">
+                                    <i class="fas fa-user text-vivo"></i>
+                                </div>
+                                <div>
+                                    <strong>{{ sub.username }}</strong>
+                                    <br>
+                                    <small class="text-muted">ID: {{ sub.id }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ sub.email }}</td>
+                        <td>
+                            {% if sub.role == 'admin' %}
+                                <span class="badge bg-danger">Administrador</span>
+                            {% elif sub.role == 'gerente' %}
+                        <span class="badge bg-info">GERENTE</span>
+                    {% elif sub.role == 'gestor' %}
+                                <span class="badge bg-success">Gestor</span>
+                            {% elif sub.role == 'focal' %}
+                                <span class="badge bg-warning">Focal</span>
+                            {% else %}
+                                <span class="badge bg-primary">Usuário</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if sub.aniversario %}
+                                {{ sub.aniversario.strftime("%d/%m") }}
+                                <small class="text-muted">({{ sub.aniversario.strftime("%Y") }})</small>
+                            {% else %}
+                                <span class="text-muted">Não informado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('gestor.editar_subordinado', user_id=sub.id) }}" 
+                                   class="btn btn-outline-primary btn-sm" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" 
+                                        class="btn btn-outline-danger btn-sm" 
+                                        title="Remover"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalRemover{{ sub.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Modal de confirmação de remoção -->
+                            <div class="modal fade" id="modalRemover{{ sub.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Confirmar Remoção</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Tem certeza que deseja remover o subordinado <strong>{{ sub.username }}</strong>?
+                                            <br><br>
+                                            <div class="alert alert-warning">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                Esta ação removerá também todas as solicitações deste usuário.
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <form method="POST" action="{{ url_for('gestor.remover_subordinado', user_id=sub.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-danger">Remover</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-user-friends fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Nenhum subordinado encontrado</h5>
+            <p class="text-muted">Você ainda não tem subordinados atribuídos.</p>
+            <a href="{{ url_for('gestor.adicionar_subordinado') }}" class="btn btn-vivo">
+                <i class="fas fa-plus me-1"></i>Adicionar Primeiro Subordinado
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .text-vivo { color: #660099; }
+    .btn-vivo { background-color: #660099; color: #fff; }
+    .btn-vivo:hover { background-color: #4d0073; color: #fff; }
+</style>
+{% endblock %}

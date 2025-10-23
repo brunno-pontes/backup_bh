@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title if title else "Planejamento" }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+
+        .navbar {
+            background-color: #660099 !important;
+        }
+
+        .btn-vivo {
+            background-color: #660099;
+            color: #fff;
+        }
+
+        .btn-vivo:hover {
+            background-color: #A347BA;
+            color: #fff;
+        }
+
+        .sidebar {
+            background-color: #fff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            min-height: calc(100vh - 56px);
+            position: sticky;
+            top: 56px;
+        }
+
+        .nav-link {
+            color: #660099;
+            border-left: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background-color: #f8f0ff;
+            border-left: 3px solid #660099;
+            color: #660099;
+        }
+
+        .user-info {
+            background-color: #f8f0ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px;
+        }
+
+        /* Estilo para as mensagens que desaparecem */
+        .auto-dismiss-alert {
+            transition: opacity 0.5s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-dark navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-calendar-alt me-2"></i>📅 Planejamento
+            </a>
+
+            {% if current_user.is_authenticated %}
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            {{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Perfil</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Sair
+                                </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            {% if current_user.is_authenticated %}
+            <!-- Sidebar Menu -->
+            <div class="col-lg-3 col-md-4 d-none d-md-block">
+                <div class="sidebar">
+                    <div class="user-info text-center mb-3">
+                        <div class="rounded-circle bg-vivo text-white d-flex align-items-center justify-content-center mx-auto mb-2"
+                            style="width: 60px; height: 60px; background-color: #660099;">
+                            <i class="fas fa-user fa-2x"></i>
+                        </div>
+                        <h6 class="mb-0">{{ current_user.username }}</h6>
+                        <small class="text-muted">
+                            {% if current_user.role == 'admin' %}
+                            <span class="badge bg-danger">ADMIN</span>
+                            {% elif current_user.role == 'gerente' %}
+                            <span class="badge bg-info">GERENTE</span>
+                            {% elif current_user.role == 'gestor' %}
+                            <span class="badge bg-success">GESTOR</span>
+                            {% elif current_user.role == 'focal' %}
+                            <span class="badge bg-warning">FOCAL</span>
+                            {% elif current_user.role == 'user' %}
+                            <span class="badge bg-primary">USUÁRIO</span>
+                            {% else %}
+                            {% endif %}
+                            {% if current_user.role == 'diretor' %}
+                            <span class="badge bg-dark">DIRETOR</span>
+                            {% elif current_user.role == 'gerente senior' %}
+                            <span class="badge bg-info">GERENTE SENIOR</span>
+                            {% endif %}
+                        </small>
+                    </div>
+                    {% if current_user.role in ['user' , 'gestor', 'focal'] %}
+                    <nav class="nav flex-column">
+                        <h6 class="px-3 mt-3 mb-2 text-muted">MENU PRINCIPAL</h6>
+                       
+                        <a class="nav-link {% if request.endpoint == 'solicitacao.solicitacao' %}active{% endif %}"
+                            href="{{ url_for('solicitacao.solicitacao') }}">
+                            <i class="fas fa-plus-circle me-2"></i>Nova Solicitação
+                        </a>
+
+                        <a class="nav-link {% if request.endpoint == 'requests.minhas_solicitacoes' %}active{% endif %}"
+                            href="{{ url_for('requests.minhas_solicitacoes') }}">
+                            <i class="fas fa-list me-2"></i>Minhas Solicitações
+                        </a>
+                        {% endif %}
+                        {% if current_user.role in ['user','focal'] %}
+                        <a class="nav-link {% if request.endpoint == 'requests.solicitacoes_equipe' %}active{% endif %}"
+                            href="{{ url_for('requests.solicitacoes_equipe') }}">
+                            <i class="fas fa-users me-2"></i>Solicitações da Equipe
+                        </a>
+                        {% endif %}
+                        <!-- SEÇÃO DE GESTÃO -->
+                        {% if current_user.role in ['gestor','focal', 'admin', 'gerente','gerente senior', 'diretor']%}
+                        <h6 class="px-3 mt-4 mb-2 text-muted">GESTÃO</h6>
+                         {% endif %}
+                         
+                         {% if current_user.role in ['gestor'] %}
+                        <!-- Solicitações da Equipe - visível para ambos perfis -->
+                        <a class="nav-link {% if request.endpoint == 'gestor.lista_solicitacoes' %}active{% endif %}"
+                            href="{{ url_for('gestor.lista_solicitacoes') }}">
+                            <i class="fas fa-users me-2"></i>Solicitações da Equipe
+                        </a>
+                        
+                        <!-- Relatórios - visível para ambos perfis -->
+                        <a class="nav-link {% if request.endpoint == 'gestor.relatorios' %}active{% endif %}"
+                            href="{{ url_for('gestor.relatorios') }}">
+                            <i class="fas fa-chart-bar me-2"></i>Relatórios
+                        </a>
+                          {% endif %}
+                        <!-- Subordinados - visível apenas para gestor -->
+                        {% if current_user.role == 'gestor' %}
+                        <a class="nav-link {% if request.endpoint == 'gestor.lista_subordinados' %}active{% endif %}"
+                            href="{{ url_for('gestor.lista_subordinados') }}">
+                            <i class="fas fa-user-friends me-2"></i>Subordinados
+                        </a>
+                        {% endif %}
+                        
+                        <!-- Upload Excel - visível para admin, gerente e focal -->
+                        {% if current_user.role in ['admin', 'focal', 'gestor'] %}
+                        <a class="nav-link {% if request.endpoint == 'excel_upload.upload_excel' %}active{% endif %}"
+                            href="{{ url_for('excel_upload.upload_excel') }}">
+                            <i class="fas fa-file-excel me-2"></i>Upload Planilha
+                        </a>
+                        {% endif %}
+                        
+                        <!-- Visão Gerencial - visível para admin, diretor, gerente senior e focal -->
+                        {% if current_user.role in ['admin', 'diretor', 'gerente senior'] %}
+                        <a class="nav-link {% if request.endpoint == 'excel_upload.visualizacao_gerencial' %}active{% endif %}"
+                            href="{{ url_for('excel_upload.visualizacao_gerencial') }}">
+                            <i class="fas fa-chart-line me-2"></i>Visão Gerencial
+                        </a>
+                        {% endif %}
+
+                        {% if current_user.role in ['admin', 'diretor', 'gerente senior'] %}
+                        <!-- Visão de Férias - visível para admin, diretor, gerente senior e focal -->
+                        <a class="nav-link {% if request.endpoint == 'excel_upload.visualizacao_ferias' %}active{% endif %}"
+                            href="{{ url_for('excel_upload.visualizacao_ferias') }}">
+                            <i class="fas fa-calendar-alt me-2"></i>Controle de Férias
+                        </a>
+                        {% endif %}
+                        
+                        <!-- Minha Visão Gerencial - visível para admin e gerente -->
+                        {% if current_user.role in ['admin', 'gerente'] %}
+                        <a class="nav-link {% if request.endpoint == 'excel_upload.visualizacao_gerencial_gerente' %}active{% endif %}"
+                            href="{{ url_for('excel_upload.visualizacao_gerencial_gerente') }}">
+                            <i class="fas fa-chart-bar me-2"></i>Minha Visão Gerencial
+                        </a>
+                        {% endif %}
+                        
+                        <!-- Controle de Férias da Equipe - visível para gestor -->
+                        {% if current_user.role == 'gerente' %}
+                        <a class="nav-link {% if request.endpoint == 'excel_upload.visualizacao_ferias_gerente' %}active{% endif %}"
+                            href="{{ url_for('excel_upload.visualizacao_ferias_gerente') }}">
+                            <i class="fas fa-calendar-alt me-2"></i>Controle de Férias da Equipe
+                        </a>
+                        {% endif %}
+
+                        <!-- SEÇÃO ADMINISTRATIVA -->
+                        {% if current_user.role == 'admin' %}
+                        <h6 class="px-3 mt-4 mb-2 text-muted">ADMINISTRAÇÃO</h6>
+                        <a class="nav-link {% if request.endpoint and 'admin' in request.endpoint %}active{% endif %}"
+                            href="{{ url_for('admin.dashboard') }}">
+                            <i class="fas fa-cogs me-2"></i>Administração
+                        </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <div class="col-12 d-md-none">
+                <button class="btn btn-vivo w-100 mt-3" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#mobileMenu">
+                    <i class="fas fa-bars me-2"></i>Menu
+                </button>
+
+                <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu">
+                    <div class="offcanvas-header" style="background-color: #660099; color: white;">
+                        <h5 class="offcanvas-title">
+                            <i class="fas fa-calendar-alt me-2"></i>Planejamento
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <div class="user-info text-center mb-3">
+                            <div class="rounded-circle bg-vivo text-white d-flex align-items-center justify-content-center mx-auto mb-2"
+                                style="width: 60px; height: 60px; background-color: #660099;">
+                                <i class="fas fa-user fa-2x"></i>
+                            </div>
+                            <h6 class="mb-0">{{ current_user.username }}</h6>
+                            <small class="text-muted">
+                                {% if current_user.role == 'admin' %}
+                                <span class="badge bg-danger">ADMIN</span>
+                                {% elif current_user.role == 'gerente' %}
+                                <span class="badge bg-info">GERENTE</span>
+                                {% elif current_user.role == 'gestor' %}
+                                <span class="badge bg-success">GESTOR</span>
+                                {% elif current_user.role == 'focal' %}
+                                <span class="badge bg-warning">FOCAL</span>
+                               
+                                {% elif current_user.role == 'user' %}
+                                <span class="badge bg-primary">USUÁRIO</span>
+                                {% else %}
+                                {% endif %}
+                                {% if current_user.role == 'diretor' %}
+                                <span class="badge bg-dark">DIRETOR</span>
+                                {% elif current_user.role == 'gerente senior' %}
+                                <span class="badge bg-info">GERENTE SENIOR</span>
+                                {% endif %}
+                            </small>
+                        </div>
+
+                        <nav class="nav flex-column">
+                            <h6 class="mt-3 mb-2 text-muted">MENU PRINCIPAL</h6>
+
+                            <a class="nav-link {% if request.endpoint == 'solicitacao.solicitacao' %}active{% endif %}"
+                                href="{{ url_for('solicitacao.solicitacao') }}" data-bs-dismiss="offcanvas">
+                                <i class="fas fa-plus-circle me-2"></i>Nova Solicitação
+                            </a>
+
+                            <a class="nav-link {% if request.endpoint == 'requests.minhas_solicitacoes' %}active{% endif %}"
+                                href="{{ url_for('requests.minhas_solicitacoes') }}" data-bs-dismiss="offcanvas">
+                                <i class="fas fa-list me-2"></i>Minhas Solicitações
+                            </a>
+
+                            <a class="nav-link {% if request.endpoint == 'requests.solicitacoes_equipe' %}active{% endif %}"
+                                href="{{ url_for('requests.solicitacoes_equipe') }}" data-bs-dismiss="offcanvas">
+                                <i class="fas fa-users me-2"></i>Solicitações da Equipe
+                            </a>
+
+                            <!-- SEÇÃO DE GESTÃO MOBILE -->
+                            {% if current_user.role in ['gerente', 'focal'] %}
+                            <h6 class="mt-4 mb-2 text-muted">GESTÃO</h6>
+
+                            <!-- Solicitações da Equipe - visível para ambos perfis -->
+                            <a class="nav-link {% if request.endpoint == 'gestor.lista_solicitacoes' %}active{% endif %}"
+                                href="{{ url_for('gestor.lista_solicitacoes') }}" data-bs-dismiss="offcanvas">
+                                <i class="fas fa-users me-2"></i>Solicitações da Equipe
+                            </a>
+
+                            <!-- Relatórios - visível para ambos perfis -->
+                            <a class="nav-link {% if request.endpoint == 'gestor.relatorios' %}active{% endif %}"
+                                href="{{ url_for('gestor.relatorios') }}" data-bs-dismiss="offcanvas">
+                                <i class="fas fa-chart-bar me-2"></i>Relatórios
+                            </a>
+
+                            
+                                                        <!-- Upload Planilha - visível para gerente, focal e gestor -->
+                            {% if current_user.role in ['gerente', 'focal', 'gestor'] %}
+                            <a class="nav-link" href="/excel-upload" data-bs-dismiss="offcanvas">
+                                <i class="fas fa-file-excel me-2"></i>Upload Planilha
+                            </a>
+                            {% endif %}
+
+                            <!-- Subordinados - visível apenas para gerente -->
+                            {% if current_user.role == 'gestor' %}
+                            <a class="nav-link {% if request.endpoint == 'gestor.lista_subordinados' %}active{% endif %}"
+                                href="{{ url_for('gestor.lista_subordinados') }}" data-bs-dismiss="offcanvas">
+                                <i class="fas fa-user-friends me-2"></i>Subordinados
+                            </a>
+                            {% endif %}
+                            
+                            <!-- Minha Visão Gerencial - visível para admin e gerente -->
+                            <a class="nav-link {% if request.endpoint == 'excel_upload.visualizacao_gerencial_gerente' %}active{% endif %}"
+                                href="{{ url_for('excel_upload.visualizacao_gerencial_gerente') }}" data-bs-dismiss="offcanvas">
+                                <i class="fas fa-chart-bar me-2"></i>Minha Visão Gerencial
+                            </a>
+                            {% endif %}
+                            
+                            <!-- Controle de Férias da Equipe - visível para gestor e gerente -->
+                            {% if current_user.role in ['gestor', 'gerente'] %}
+                            <a class="nav-link {% if request.endpoint == 'excel_upload.visualizacao_ferias_gerente' %}active{% endif %}\"
+                                href="{{ url_for('excel_upload.visualizacao_ferias_gerente') }}" data-bs-dismiss="offcanvas">
+                                <i class="fas fa-calendar-alt me-2"></i>Controle de Férias da Equipe
+                            </a>
+                            {% endif %}
+
+                            <!-- SEÇÃO ADMINISTRATIVA MOBILE -->
+                            {% if current_user.role == 'admin' %}
+                            <h6 class="mt-4 mb-2 text-muted">ADMINISTRAÇÃO</h6>
+                            <a class="nav-link {% if request.endpoint and 'admin' in request.endpoint %}active{% endif %}"
+                                href="{{ url_for('admin.dashboard') }}" data-bs-dismiss="offcanvas">
+                                <i class="fas fa-cogs me-2"></i>Administração
+                            </a>
+                            {% endif %}
+
+                            <h6 class="mt-4 mb-2 text-muted">SUPORTE</h6>
+                            <a class="nav-link" href="#" data-bs-dismiss="offcanvas">
+                                <i class="fas fa-question-circle me-2"></i>Ajuda
+                            </a>
+                            <a class="nav-link" href="#" data-bs-dismiss="offcanvas">
+                                <i class="fas fa-info-circle me-2"></i>Sobre
+                            </a>
+
+                            <hr class="my-3">
+                            <a class="nav-link text-danger" href="{{ url_for('auth.logout') }}"
+                                data-bs-dismiss="offcanvas">
+                                <i class="fas fa-sign-out-alt me-2"></i>Sair
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Main Content -->
+            <div class="{% if current_user.is_authenticated %}col-lg-9 col-md-8{% else %}col-12{% endif %}">
+                <div class="container mt-4">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show auto-dismiss-alert"
+                        role="alert" data-auto-dismiss="5000">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Função para fechar mensagens automaticamente
+        document.addEventListener('DOMContentLoaded', function () {
+            // Fechar mensagens após 5 segundos
+            const autoDismissAlerts = document.querySelectorAll('.auto-dismiss-alert');
+            autoDismissAlerts.forEach(function (alert) {
+                const dismissTime = alert.getAttribute('data-auto-dismiss') || 5000;
+                setTimeout(function () {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, parseInt(dismissTime));
+            });
+
+            // Também fechar ao clicar no botão de fechar
+            const closeButtons = document.querySelectorAll('.alert .btn-close');
+            closeButtons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    const alert = this.closest('.alert');
+                    if (alert) {
+                        alert.classList.remove('show');
+                        setTimeout(function () {
+                            alert.remove();
+                        }, 150);
+                    }
+                });
+            });
+        });
+    </script>
+
+    <style>
+        .btn-outline-vivo {
+            color: #660099;
+            border-color: #660099;
+        }
+
+        .btn-outline-vivo:hover {
+            background-color: #660099;
+            color: #fff;
+        }
+
+        .bg-vivo {
+            background-color: #660099 !important;
+        }
+    </style>
+</body>
+
+</html>

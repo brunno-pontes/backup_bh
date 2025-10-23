@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-12">
+        <div class="card shadow-lg">
+            <div class="card-header bg-vivo text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i>Visão Gerencial - Controle de Horas</h4>
+                <!-- <a href="{{ url_for('excel_upload.visualizacao_gerencial') }}" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-2"></i>Voltar
+                </a> -->
+            </div>
+            <div class="card-body">
+                
+                <div class="row mb-4">
+                    <div class="col-md-2">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h3>{{ gerentes|length }}</h3>
+                                <h6>Total Gerentes</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card border border-danger bg-danger text-white">
+                            <div class="card-body text-center">
+                                <h3 class="text-white">{{ "%.2f"|format(horas_por_faixa.ate_30.soma_horas) }}</h3>
+                                <h6 class="text-white">A vencer 30 dias</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card border border-warning bg-warning text-dark">
+                            <div class="card-body text-center">
+                                <h3 class="text-white">{{ "%.2f"|format(horas_por_faixa.de_31_60.soma_horas) }}</h3>
+                                <h6 class="text-white">A vencer 60 dias</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card border border-secondary bg-secondary text-white">
+                            <div class="card-body text-center">
+                                <h3 class="text-white">{{ "%.2f"|format(horas_por_faixa.de_61_90.soma_horas) }}</h3>
+                                <h6 class="text-white">A vencer 90 dias</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card border border-success bg-success text-white">
+                            <div class="card-body text-center">
+                                <h3 class="text-white">{{ "%.2f"|format(horas_por_faixa.acima_120.soma_horas) }}</h3>
+                                <h6 class="text-white">A vencer 120 dias</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+
+                
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th scope="col">Gerente Imediato</th>
+                                <th scope="col">Soma Horas</th>
+                                <th scope="col">A vencer 30 dias</th>
+                                <th scope="col">A vencer 60 dias</th>
+                                <th scope="col">A vencer 90 dias</th>
+                                <th scope="col">A vencer 120+ dias</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for gerente in gerentes %}
+                            <tr>
+                                <td>{{ gerente.nome }}</td>
+                                <td>{{ "%.2f"|format(gerente.soma_horas) }}</td>
+                                <td>{{ "%.2f"|format(gerente.horas_ate_30) }}</td>
+                                <td>{{ "%.2f"|format(gerente.horas_31_60) }}</td>
+                                <td>{{ "%.2f"|format(gerente.horas_61_90) }}</td>
+                                <td>{{ "%.2f"|format(gerente.horas_acima_120) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if gerentes %}
+                <div class="mt-4">
+                    <h5>Gerentes com horas a vencer:</h5>
+                    <!-- Filtro para os cards de gerentes -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <form method="GET" class="d-flex">
+                                <input type="hidden" name="filtro_nome" value="{{ request.args.get('filtro_nome', '') }}">
+                                <select class="form-select me-2" name="filtro_gerente" onchange="this.form.submit()">
+                                    <option value="">Selecione um gerente...</option>
+                                    {% for gerente in gerentes %}
+                                        <option value="{{ gerente.nome }}" {% if filtro_gerente == gerente.nome %}selected{% endif %}>{{ gerente.nome }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if filtro_gerente %}
+                                <a href="{{ url_for('excel_upload.visualizacao_gerencial', filtro_nome=request.args.get('filtro_nome', '')) }}" class="btn btn-outline-secondary">
+                                    Limpar
+                                </a>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                    
+                    {% for gerente in gerentes_filtrados[:1] %}
+                    <div class="row">
+                        <!-- Card 30 dias -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100 border-danger border-start-4 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="card-title text-center text-danger">A vencer 30 dias</h6>
+                                    <p class="card-text text-center">
+                                        <strong>{{ "%.2f"|format(gerente.horas_ate_30) }}</strong><br>
+                                        <small>horas totais</small>
+                                    </p>
+                                    {% if gerente.colaboradores_ate_30 %}
+                                    <div class="table-responsive mt-2" style="max-height: 150px; overflow-y: auto;">
+                                        <small class="text-muted">Colaboradores:</small>
+                                        <table class="table table-sm table-bordered mt-1">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Nome</th>
+                                                    <th>Horas</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for colaborador in gerente.colaboradores_ate_30[:5] %}
+                                                <tr>
+                                                    <td class="small">{{ colaborador.nome|truncate(15, true, '...') }}</td>
+                                                    <td class="small">{{ "%.2f"|format(colaborador.horas) }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Card 60 dias -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100 border-warning border-start-4 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="card-title text-center text-warning">A vencer 60 dias</h6>
+                                    <p class="card-text text-center">
+                                        <strong>{{ "%.2f"|format(gerente.horas_31_60) }}</strong><br>
+                                        <small>horas totais</small>
+                                    </p>
+                                    {% if gerente.colaboradores_31_60 %}
+                                    <div class="table-responsive mt-2" style="max-height: 150px; overflow-y: auto;">
+                                        <small class="text-muted">Colaboradores:</small>
+                                        <table class="table table-sm table-bordered mt-1">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Nome</th>
+                                                    <th>Horas</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for colaborador in gerente.colaboradores_31_60[:5] %}
+                                                <tr>
+                                                    <td class="small">{{ colaborador.nome|truncate(15, true, '...') }}</td>
+                                                    <td class="small">{{ "%.2f"|format(colaborador.horas) }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Card 90 dias -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100 border-secondary border-start-4 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="card-title text-center text-secondary">A vencer 90 dias</h6>
+                                    <p class="card-text text-center">
+                                        <strong>{{ "%.2f"|format(gerente.horas_61_90) }}</strong><br>
+                                        <small>horas totais</small>
+                                    </p>
+                                    {% if gerente.colaboradores_61_90 %}
+                                    <div class="table-responsive mt-2" style="max-height: 150px; overflow-y: auto;">
+                                        <small class="text-muted">Colaboradores:</small>
+                                        <table class="table table-sm table-bordered mt-1">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Nome</th>
+                                                    <th>Horas</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for colaborador in gerente.colaboradores_61_90[:5] %}
+                                                <tr>
+                                                    <td class="small">{{ colaborador.nome|truncate(15, true, '...') }}</td>
+                                                    <td class="small">{{ "%.2f"|format(colaborador.horas) }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Card 120 dias -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100 border-success border-start-4 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="card-title text-center text-success">A vencer 120+ dias</h6>
+                                    <p class="card-text text-center">
+                                        <strong>{{ "%.2f"|format(gerente.horas_acima_120) }}</strong><br>
+                                        <small>horas totais</small>
+                                    </p>
+                                    {% if gerente.colaboradores_acima_120 %}
+                                    <div class="table-responsive mt-2" style="max-height: 150px; overflow-y: auto;">
+                                        <small class="text-muted">Colaboradores:</small>
+                                        <table class="table table-sm table-bordered mt-1">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Nome</th>
+                                                    <th>Horas</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for colaborador in gerente.colaboradores_acima_120[:5] %}
+                                                <tr>
+                                                    <td class="small">{{ colaborador.nome|truncate(15, true, '...') }}</td>
+                                                    <td class="small">{{ "%.2f"|format(colaborador.horas) }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if filtro_gerente and gerentes_filtrados|length == 0 %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> Nenhum gerente encontrado com o filtro aplicado.
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

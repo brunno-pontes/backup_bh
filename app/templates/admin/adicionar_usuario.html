@@ -1,0 +1,81 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="text-vivo mb-0">
+        <i class="fas fa-user-plus me-2"></i>Adicionar Novo Usuário
+    </h3>
+    <a href="{{ url_for('admin.listar_usuarios') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Voltar
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Email *</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Nome de Usuário *</label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Senha *</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Perfil *</label>
+                        <select name="role" class="form-select" required>
+                            <option value="user">Usuário</option>
+                            <option value="focal">Focal</option>
+                            <option value="gerente">Gerente</option>
+                    <option value="gestor">Gestor</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Gestor (opcional)</label>
+                        <select name="gestor_id" class="form-select">
+                            <option value="">Nenhum</option>
+                            {% for gestor in gestores %}
+                            <option value="{{ gestor.id }}">{{ gestor.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-vivo">
+                            <i class="fas fa-save me-1"></i>Adicionar Usuário
+                        </button>
+                    </div>
+                </form>
+                
+                <div class=\"alert alert-info mt-3\">
+                    <i class=\"fas fa-info-circle me-2\"></i>
+                    Os usuários criados aqui terão acesso local/offline e não dependerão do Active Directory (AD).
+                    Eles poderão acessar o sistema tanto na intranet quanto fora dela.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-vivo {
+        background-color: #660099;
+        color: #fff;
+    }
+    .btn-vivo:hover {
+        background-color: #4d0073;
+        color: #fff;
+    }
+</style>
+{% endblock %}

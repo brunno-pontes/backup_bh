@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-12">
+        <div class="card shadow-lg">
+            <div class="card-header bg-vivo text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Controle de Férias</h4>
+                <a href="{{ url_for('excel_upload.visualizacao_gerencial') }}" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-2"></i>Voltar
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h3>{{ ferias_marcadas|length }}</h3>
+                                <h6>Férias Marcadas</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body text-center">
+                                <h3>{{ ferias_nao_marcadas|length }}</h3>
+                                <h6>Férias Não Marcadas</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="marcadas-tab" data-bs-toggle="tab" data-bs-target="#marcadas" type="button" role="tab">Férias Marcadas</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="nao-marcadas-tab" data-bs-toggle="tab" data-bs-target="#nao-marcadas" type="button" role="tab">Férias Não Marcadas</button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content mt-3" id="myTabContent">
+                    <div class="tab-pane fade show active" id="marcadas" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th scope="col">Nome</th>
+                                        <th scope="col">Cargo</th>
+                                        <th scope="col">Gestor Imediato</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Períodos</th>
+                                        <th scope="col">Dias Totais</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ferias in ferias_marcadas %}
+                                    <tr>
+                                        <td>{{ ferias.nome }}</td>
+                                        <td>{{ ferias.cargo or 'N/A' }}</td>
+                                        <td>{{ ferias.gestor_imediato or 'N/A' }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if ferias.status == 'Aprovado' else 'warning' }}">{{ ferias.status }}</span>
+                                        </td>
+                                        <td>
+                                            {% for periodo in ferias.periodos %}
+                                            <div class="small">
+                                                {{ periodo.inicio.strftime('%d/%m/%Y') }} - {{ periodo.fim.strftime('%d/%m/%Y') }}
+                                                <span class="badge bg-info">{{ periodo.dias }} dias</span>
+                                                <span class="badge bg-{{ 'success' if periodo.status == 'Aprovado' else 'warning' }}">{{ periodo.status }}</span>
+                                            </div>
+                                            {% endfor %}
+                                        </td>
+                                        <td>{{ ferias.dias_totais }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="nao-marcadas" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th scope="col">Nome</th>
+                                        <th scope="col">Cargo</th>
+                                        <th scope="col">Gestor Imediato</th>
+                                        <th scope="col">Dias desde registro</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for funcionario in ferias_nao_marcadas %}
+                                    <tr>
+                                        <td>{{ funcionario.nome }}</td>
+                                        <td>{{ funcionario.cargo or 'N/A' }}</td>
+                                        <td>{{ funcionario.gestor_imediato or 'N/A' }}</td>
+                                        <td>{{ funcionario.dias_desde_registro or 'N/A' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if ferias_nao_marcadas %}
+                <div class="alert alert-warning mt-4" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Destaques:</strong> Funcionários com mais de 365 dias desde o registro podem estar em atraso com o gozo das férias.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
